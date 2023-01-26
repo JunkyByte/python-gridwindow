@@ -19,41 +19,32 @@ class GridWindow_2:
         self.positions = None
 
     def find_max_scale(self, sizes: list[tuple[int, int]]):
-        max_sx = self.max_width / max(s[0] for s in sizes)
-        max_sy = self.max_height / max(s[1] for s in sizes)
-        print(sizes, self.max_width, self.max_height)
-        print(max_sx, max_sy)
-        return min(max_sx, max_sy)
+        max_sx = self.max_width / (np.mean([s[0] for s in sizes]) * np.sqrt(len(sizes)))
+        max_sy = self.max_height / (np.mean([s[1] for s in sizes]) * np.sqrt(len(sizes)))
+        return max(max_sx, max_sy)  # TODO: min is quite efficient, max is quite better
 
     def update(self, images: list):
         sizes = [img.shape[:2][::-1] for img in images]
         source_change = self.last_sizes != sizes
         self.last_sizes = sizes
-        print('Change', source_change)
         if source_change:
             self.s = self.find_max_scale(sizes)
 
         while True:  # Find a way to represent the images
             try:
                 if self.s != 1:
-                    print('Rescaling with ratio', self.s)
                     images = [cv2.resize(img, (int(s[0] * self.s), int(s[1] * self.s)), cv2.INTER_LINEAR)
                               for s, img in zip(sizes, images)]
                 curr_sizes = [img.shape[:2][::-1] for img in images]
                 if source_change:
-                    print('packing')
                     self.positions = rpack.pack(curr_sizes, max_width=self.max_width, max_height=self.max_height)
-                    print('finished packing!')
                 max_x, max_y = rpack.bbox_size(curr_sizes, self.positions)
                 cv2.resizeWindow(self.name, max_x, max_y)
                 break
             except rpack.PackingImpossibleError as e:
-                print(e)
                 if not self.autoscale:
                     raise e
-                self.s *= 4 / 5
-                # TODO: This can ofc be more efficient
-                # (especially at start -> scale so that highest is < max_height)
+                self.s *= 9 / 10
 
         window = np.zeros((max_y, max_x, 3), dtype=np.uint8)
         for img, (x, y) in zip(images, self.positions):
@@ -85,7 +76,7 @@ if __name__ == '__main__':
         if any(f is None for f in frame):
             break
         if ith % 10 == 0:
-            ss = np.random.randint(240, 640, size=len(videos) * 2)
+            ss = np.random.randint(480, 481, size=len(videos) * 2)
             sizes = [(ss[i], ss[i + 1]) for i in range(0, len(ss), 2)]
         frame = [cv2.resize(f, s, cv2.INTER_LINEAR) for (f, s) in zip(frame, sizes)]
         if w.update(frame) & 0xFF == ord('q'):
