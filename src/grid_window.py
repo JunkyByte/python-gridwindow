@@ -1,10 +1,11 @@
 import cv2
 import numpy as np
+
 import rpack
 
 
 class GridWindow_2:
-    def __init__(self, max_width, max_height, autoscale=True):
+    def __init__(self, max_width: int, max_height: int, autoscale: bool = True):
         self.name = 'autogrid'
         cv2.namedWindow(self.name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.name, max_width, max_height)
@@ -17,13 +18,20 @@ class GridWindow_2:
         self.last_sizes = None
         self.positions = None
 
+    def find_max_scale(self, sizes: list[tuple[int, int]]):
+        max_sx = self.max_width / max(s[0] for s in sizes)
+        max_sy = self.max_height / max(s[1] for s in sizes)
+        print(sizes, self.max_width, self.max_height)
+        print(max_sx, max_sy)
+        return min(max_sx, max_sy)
+
     def update(self, images: list):
         sizes = [img.shape[:2][::-1] for img in images]
         source_change = self.last_sizes != sizes
         self.last_sizes = sizes
         print('Change', source_change)
         if source_change:
-            self.s = 1
+            self.s = self.find_max_scale(sizes)
 
         while True:  # Find a way to represent the images
             try:
@@ -40,6 +48,7 @@ class GridWindow_2:
                 cv2.resizeWindow(self.name, max_x, max_y)
                 break
             except rpack.PackingImpossibleError as e:
+                print(e)
                 if not self.autoscale:
                     raise e
                 self.s *= 4 / 5
