@@ -1,0 +1,4 @@
+numpy==1.23.5
+opencv-python==4.5.5.64
+rectangle_packer==2.0.1
+setuptools==65.4.1
