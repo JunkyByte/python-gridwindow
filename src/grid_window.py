@@ -1,6 +1,5 @@
 import cv2
 import numpy as np
-
 import rpack
 
 
@@ -12,7 +11,8 @@ class MagicGrid:
         having to take care of resolution, position or scale.
         The 'best' way to display the images by respecting a max resolution will be found automatically.
     """
-    def __init__(self, max_width: int, max_height: int, waitKey: int = 15, autoscale: bool = True):
+    def __init__(self, max_width: int, max_height: int, waitKey: int = 15,
+                 autoscale: bool = True, scale_algo: int = cv2.INTER_LINEAR):
         """
         Construct a MagicGrid opencv window.
 
@@ -28,6 +28,8 @@ class MagicGrid:
             whether or not to autoscale the images to fit. For maximum
             flexibility this should be True, if False and the images do not fit
             in a (max_width, max_height) grid update will throw an error.
+        scale_algo: int
+            Algorithm used to rescale the images, defaults to cv2.INTER_LINEAR
         """
         self.name: str = 'autogrid'
         cv2.namedWindow(self.name, cv2.WINDOW_NORMAL)
@@ -35,8 +37,9 @@ class MagicGrid:
         self.max_width: int = max_width
         self.max_height: int = max_height
         self.autoscale: bool = autoscale
+        self.scale_algo: int = scale_algo
 
-        self._waitkey: int = waitKey
+        self.waitKey: int = waitKey
         self.s: float = 1
         self.last_sizes: list[tuple[int, int]] = None
         self.positions: list[tuple[int, int]] = None
@@ -48,12 +51,13 @@ class MagicGrid:
 
     def update(self, images: list[np.ndarray]) -> int:
         """
-        Update the view with new images, a list of images in np.ndarray, bgr format should be passed.
+        Update the view with new images
 
         Parameters
         ----------
-        images
-            the list of images
+        images: list[np.ndarray]
+            the list of images: BGR images in np.ndarray is expected.
+            if image.ndim == 2 grayscale is assumed.
 
         Returns
         -------
@@ -71,10 +75,10 @@ class MagicGrid:
         if source_change:
             self.s = self._find_max_scale(sizes)
 
-        while True:  # Find a way to represent the images
+        while True:  # Find a valid grid to represent the images
             try:
                 if self.s != 1:
-                    images = [cv2.resize(img, (int(s[0] * self.s), int(s[1] * self.s)), cv2.INTER_LINEAR)
+                    images = [cv2.resize(img, (int(s[0] * self.s), int(s[1] * self.s)), self.scale_algo)
                               for s, img in zip(sizes, images)]
                 curr_sizes = [img.shape[:2][::-1] for img in images]
                 if source_change:
@@ -85,14 +89,16 @@ class MagicGrid:
             except rpack.PackingImpossibleError as e:
                 if not self.autoscale:
                     raise e
-                self.s *= 9 / 10  # TODO: This is fine ?
+                self.s *= 9 / 10  # TODO: Well how should we do? ~1 becomes better but more expensive
 
         window = np.zeros((max_y, max_x, 3), dtype=np.uint8)
         for img, (x, y) in zip(images, self.positions):
+            if img.ndim == 2:  # if grayscale convert it to bgr
+                img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
             window[y: y + img.shape[0], x: x + img.shape[1]] = img
 
         cv2.imshow(self.name, window)
-        return cv2.waitKey(self._waitkey)
+        return cv2.waitKey(self.waitKey)
 
 
 if __name__ == '__main__':
@@ -116,13 +122,14 @@ if __name__ == '__main__':
         frames.append(fs)
         print(f'Video sample with {len(fs)} frames')
 
-    w._waitkey = 30
+    w._waitkey = 60
     for ith, frame in enumerate(itertools.zip_longest(*frames, fillvalue=None)):
         if any(f is None for f in frame):
             break
-        # if ith % 10 == 0:
+        # if ith % 10 == 0:  # Random resize test
         #     ss = np.random.randint(240, 480, size=len(videos) * 2)
         #     sizes = [(ss[i], ss[i + 1]) for i in range(0, len(ss), 2)]
         # frame = [cv2.resize(f, s, cv2.INTER_LINEAR) for (f, s) in zip(frame, sizes)]
+        # frame = [cv2.cvtColor(f, cv2.COLOR_BGR2GRAY) for f in frame]  # Gray scale TEST
         if w.update(frame) & 0xFF == ord('q'):
             break
