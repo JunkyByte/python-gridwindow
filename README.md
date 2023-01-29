@@ -4,6 +4,7 @@ Suppose you want to see multiple videos at same time in a single opencv window. 
 The aspect ratio will be preserved but the videos might be scaled down to fit inside the `(max_width, max_height)` specified.
 
 ## Installation
+Install requirements.
 ```
 git clone https://github.com/JunkyByte/python-gridwindow.git
 cd python-gridwindow/
