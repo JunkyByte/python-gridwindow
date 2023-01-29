@@ -11,7 +11,7 @@ if __name__ == '__main__':
     w = MagicGrid(max_width=800, max_height=450)
 
     videos = glob.glob('samples/*.mp4')
-    videos = random.choices(videos, k=random.randint(2, 5))
+    videos = random.choices(videos, k=random.randint(2, 10))
     frames = []
     for v in videos:
         cap = cv2.VideoCapture(v)
@@ -25,7 +25,7 @@ if __name__ == '__main__':
         frames.append(fs)
         print(f'Video sample with {len(fs)} frames')
 
-    w.waitKey = 30
+    w.waitKey = 60
     # print('Applying random resolution to each video!')
     # ss = np.random.randint(240, 480, size=len(videos) * 2)
     # sizes = [(ss[i], ss[i + 1]) for i in range(0, len(ss), 2)]

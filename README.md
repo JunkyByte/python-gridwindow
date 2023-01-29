@@ -1,4 +1,5 @@
 # python-gridwindow
+![img](samples/img.png)
 A mini python library that provides grid visualization of multiple images/videos in a single opencv window.  
 Suppose you want to see multiple videos at same time in a single opencv window. This library will take care of placement and scaling of the videos for you, even when a disposition is not trivial.  
 The aspect ratio will be preserved but the videos might be scaled down to fit inside the `(max_width, max_height)` specified.
