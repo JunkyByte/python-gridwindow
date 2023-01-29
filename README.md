@@ -22,7 +22,7 @@ while True:
         break
 ```
 
-Check `demo.py` as well.
+Check `gridwindow/grid_window.py:MagicGrid` and `demo.py` for more details.
 
 ## How?
 In the end this project needs to solve a rectangle packing problem which is NP hard.
