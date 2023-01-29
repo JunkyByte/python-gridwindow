@@ -99,6 +99,12 @@ class MagicGrid:
 
         cv2.imshow(self.name, window)
         return cv2.waitKey(self.waitKey)
+    
+    def close(self):
+        """
+        Close the window.
+        """
+        cv2.destroyWindow(self.name)
 
 
 if __name__ == '__main__':
@@ -107,8 +113,8 @@ if __name__ == '__main__':
     import random
     w = MagicGrid(max_width=800, max_height=600)
 
-    videos = glob.glob('../samples/*.mp4')
-    videos = random.choices(videos, k=random.randint(2, 10))
+    videos = glob.glob('samples/*.mp4')
+    videos = random.choices(videos, k=random.randint(2, 5))
     frames = []
     for v in videos:
         cap = cv2.VideoCapture(v)
@@ -133,3 +139,5 @@ if __name__ == '__main__':
         # frame = [cv2.cvtColor(f, cv2.COLOR_BGR2GRAY) for f in frame]  # Gray scale TEST
         if w.update(frame) & 0xFF == ord('q'):
             break
+
+    w.close()
