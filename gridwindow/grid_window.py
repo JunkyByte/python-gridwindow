@@ -31,7 +31,7 @@ class MagicGrid:
         scale_algo: int
             Algorithm used to rescale the images, defaults to cv2.INTER_LINEAR
         """
-        self.name: str = 'autogrid'
+        self.name: str = 'MagicGrid'
         cv2.namedWindow(self.name, cv2.WINDOW_NORMAL)
         cv2.resizeWindow(self.name, max_width, max_height)
         self.max_width: int = max_width
