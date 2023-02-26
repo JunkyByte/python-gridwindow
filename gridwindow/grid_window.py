@@ -69,6 +69,7 @@ class MagicGrid:
         rpack.PackingImpossibleError:
             If the images cannot fit in the grid requested (should only happen when autoscale is False).
         """
+        assert isinstance(images, list)
         sizes = [img.shape[:2][::-1] for img in images]
         source_change = self.last_sizes != sizes
         self.last_sizes = sizes
