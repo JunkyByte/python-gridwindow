@@ -12,7 +12,8 @@ class MagicGrid:
         The 'best' way to display the images by respecting a max resolution will be found automatically.
     """
     def __init__(self, max_width: int, max_height: int, waitKey: int = 15,
-                 autoscale: bool = True, scale_algo: int = cv2.INTER_LINEAR):
+                 autoscale: bool = True, draw_outline: bool = False,
+                 scale_algo: int = cv2.INTER_LINEAR):
         """
         Construct a MagicGrid opencv window.
 
@@ -28,6 +29,9 @@ class MagicGrid:
             whether or not to autoscale the images to fit. For maximum
             flexibility this should be True, if False and the images do not fit
             in a (max_width, max_height) grid update will throw an error.
+        draw_outline: bool
+            whether or not draw white outline around each image
+            (useful for multiple black images)
         scale_algo: int
             Algorithm used to rescale the images, defaults to cv2.INTER_LINEAR
         """
@@ -37,6 +41,7 @@ class MagicGrid:
         self.max_width: int = max_width
         self.max_height: int = max_height
         self.autoscale: bool = autoscale
+        self.draw_outline: bool = draw_outline
         self.scale_algo: int = scale_algo
 
         self.waitKey: int = waitKey
@@ -56,7 +61,7 @@ class MagicGrid:
         Parameters
         ----------
         images: list[np.ndarray]
-            the list of images: BGR images in np.ndarray is expected.
+            the list of images: BGR or Gray images in np.ndarray is expected.
             if image.ndim == 2 grayscale is assumed.
 
         Returns
@@ -96,7 +101,13 @@ class MagicGrid:
         for img, (x, y) in zip(images, self.positions):
             if img.ndim == 2:  # if grayscale convert it to bgr
                 img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-            window[y: y + img.shape[0], x: x + img.shape[1]] = img
+            window[y:y + img.shape[0], x: x + img.shape[1]] = img
+
+            if self.draw_outline:
+                window[y, x: x + img.shape[1]] = 255
+                window[y + img.shape[0] - 1, x: x + img.shape[1]] = 255
+                window[y:y + img.shape[0], x] = 255
+                window[y:y + img.shape[0], x + img.shape[1] - 1] = 255
 
         cv2.imshow(self.name, window)
         return cv2.waitKey(self.waitKey)
